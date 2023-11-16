@@ -7,109 +7,252 @@
   </head>
 
   <body>
-    <div class="container">
-      <ul id="list" class="comments">
-        <li class="comment">
-          <div class="comment-header">
-            <div>Глеб Фокин</div>
-            <div>12.02.22 12:18</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Это будет первый комментарий на этой странице
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">3</span>
-              <button class="like-button"></button>
-            </div>
-          </div>
-        </li>
-        <li class="comment">
-          <div class="comment-header">
-            <div>Варвара Н.</div>
-            <div>13.02.22 19:22</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Мне нравится как оформлена эта страница! ❤
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">75</span>
-              <button class="like-button -active-like"></button>
-            </div>
-          </div>
-        </li>
+    <div class="container" >
+       <ul class="comments" id="comments" >
+
       </ul>
       <div class="add-form">
-        <input id="name-input"
+        <input
           type="text"
           class="add-form-name"
           placeholder="Введите ваше имя"
+          id="add-form-name"
+          ;
         />
-        <textarea id="text-input"
+        <textarea
           type="textarea"
           class="add-form-text"
+          id="add-form-text"
           placeholder="Введите ваш коментарий"
           rows="4"
+          id="add-form-text"
         ></textarea>
         <div class="add-form-row">
-          <button id="add-button" class="add-form-button">Написать</button>
+          <button class="add-form-button" id="add-button">Написать</button>
+          <button class="add-form-button" id="delete-button">Удалить</button>
         </div>
       </div>
     </div>
   </body>
 
-  <style>
-    .error {
-      background-color: red;
-    }
-  </style>
+
+
+
 
   <script>
     "use strict";
-    // Код писать здесь"
+    const name = document.getElementById("add-form-name");
+    const commentText = document.getElementById("add-form-text");
+    const comments = document.getElementById("comments");
     const buttonElement = document.getElementById("add-button");
-    const listElement = document.getElementById("list");
-    const nameInputElement = document.getElementById("name-input");
-    const textInputElement = document.getElementById("text-input");
+    const likeButton = document.getElementById("likeButton");
+    const likesContainer = document.getElementById("likes-container");
+    const addFormTexts = document.getElementById("add-form-text");
+
+
+
+    let people = [
+    ];
+
+      const renderComments = () => {
+
+const likesUlHTML = people.map((comment, index) =>{
+
+  return `
+   <li class="comment">
+  <div>${comment.author.name}</div>
+        <div>${comment.date}</div>
+      </div>
+      <div class="comment-body">
+        <div class="comment-text" id="answer" data-index=${index}>
+          ${comment.text}
+        </div>
+      </div>
+      <div class="comment-footer">
+  <div class="likes" data-like="${index}">
+          <span class="likes-counter" id="likes-counter">${comment.likes}</span>
+          <button class="like-button ${ comment.isLiked ? '-active-like' : '' }" id="likeButton"></button>
+        </div>
+      </li>
+      `;
+
+    })
+    .join("");
+    comments.innerHTML = likesUlHTML;
+    likeEventListeners();
+    commentEventListeners()
+  };
+  getAPI()
+
+    // Получаем с сервера API Get
+    function getAPI(){
+      buttonElement.disabled = true;
+      buttonElement.textContent = 'Комментарии загружаются...';
+      const fetchPromiseGet = fetch(
+        'https://wedev-api.sky.pro/api/v1/hamz-talhigov/comments',
+        {
+          method: "GET"
+        }
+      );
+      fetchPromiseGet     
+        .then((response) => {
+          if (!response.ok) {
+            if (response.status === 500) {
+              /* текст ошибки */
+              throw new Error('Ошибка 500');
+            }
+          }
+          /*при успешном выполнеии запроса возвращаем данные*/
+          return response.json();
+        })
+
+      .then((responseData) => {
+          console.log(responseData);
+          people = responseData.comments; //comments это ключ массива в документации
+          renderComments()
+        })
+      .then((data) => {
+        buttonElement.disabled = false;
+        buttonElement.textContent = 'Написать';
+
+  })
+  .catch((error) => {
+    buttonElement.disabled = false;
+    buttonElement.textContent = 'Написать';
+    if (error.message === 'Ошибка 500') {
+            alert('Ошибка при получении комментариев, пожалуйста, попробуйте позже');
+          }
+          console.error(error.message);
+  });
+  /*500 ошибка*/
+
+
+    };
+
 
     buttonElement.addEventListener("click", () => {
-
-      nameInputElement.classList.remove("error");
-      if(nameInputElement.value === '') {
-        nameInputElement.classList.add("error");
+      if (name.value === "") {
+        name.style.backgroundColor = "#ff7d7d";
+        return;
+      }
+      if (commentText.value === "") {
+        commentText.style.backgroundColor = "#ff7d7d";
         return;
       }
 
-      textInputElement.classList.remove("error");
-      if(textInputElement.value === '') {
-        textInputElement.classList.add("error");
-        return;
-      }
+      let date = new Date();
+    let output =
+      String(date.getDate()) +
+      "." +
+      String(date.getMonth() + 1) +
+      "." +
+      date.getFullYear() +
+      " " +
+      date.getHours() +
+      ":" +
+      date.getMinutes();
 
-      const oldListHtml = listElement.innerHTML;
-      listElement.innerHTML = oldListHtml + ` <li class="comment">
-          <div class="comment-header">
-            <div>${nameInputElement.value}</div>
-            <div>12.02.22 12:18</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              ${textInputElement.value}
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">3</span>
-              <button class="like-button"></button>
-            </div>
-          </div>
-        </li>`;
-    })
-    console.log("It works!");
+
+//Отключаем кнопку, пока идет загрузка запроса, чтобы пользователь с медленным интернетом видел
+buttonElement.disabled = true;
+buttonElement.textContent = 'Элемент добавляется...';
+// Выкидываем все на сервер API Post
+const fetchPromise = fetch('https://wedev-api.sky.pro/api/v1/hamz-talhigov/comments', {
+        method: 'POST',
+        body: JSON.stringify({
+          text: commentText.value,
+          name: name.value,
+          forceError: true, 
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            if (response.status === 500) {
+              throw new Error('Ошибка 500');
+            } else if (response.status === 400) {
+              throw new Error('Ошибка 400');
+            }
+          }
+
+          return response.json();
+        })
+        .then((responseData) => {
+          console.log(responseData);
+          getAPI();
+        })
+        .then(() => {
+          buttonElement.disabled = false;
+          buttonElement.textContent = 'Написать';
+          commentText.value = '';
+        })
+        .catch((error) => {
+          buttonElement.disabled = false;
+          buttonElement.textContent = 'Написать';
+
+          if (error.message === 'Ошибка 500') {
+            alert('Ошибка сервера, попробуйте позже');
+            return;
+          }
+
+          if (error.message === 'Ошибка 400') {
+            /*причина этой ошибки */
+            alert('Имя и комментарий должны быть не короче 3 символов');
+            return;
+          }
+
+          alert('Кажется, у вас сломался интернет, попробуйте позже');
+
+          console.log(error);
+        });
+
+      likeEventListeners();
+      renderComments();
+    });
+
+      likeEventListeners();
+      renderComments();
+
+    function likeEventListeners() {
+      const likeElements = document.querySelectorAll(".likes");
+      for (const likeElement of likeElements) {
+        likeElement.addEventListener("click", () => {
+          const index = likeElement.dataset.like;
+          console.log(index);
+
+
+          if(people[index].isLiked === false){
+            people[index].likes++
+            people[index].isLiked = true;
+            }
+            else {
+            people[index].likes--
+            people[index].isLiked = false;
+            }
+            console.log(people[index].likes);
+            renderComments();
+        });
+      }
+    }
+
+
+    function commentEventListeners(){
+      const addFormTexts = document.querySelectorAll(".comment-text");
+      for (const addFormText of addFormTexts){
+      addFormText.addEventListener("click", (event) =>{
+        event.stopPropagation()
+        console.log(addFormText.dataset.index);
+        console.log(event);
+        document.getElementById('add-form-text').value = ">" + people[addFormText.dataset.index].descr + ",";
+
+      })
+    }
+  }
+
+  commentEventListeners()
+
+
+
+    renderComments();
+    likeEventListeners();
   </script>
 </html>
