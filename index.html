@@ -89,7 +89,7 @@ const likesUlHTML = people.map((comment, index) =>{
       buttonElement.disabled = true;
       buttonElement.textContent = 'Комментарии загружаются...';
       const fetchPromiseGet = fetch(
-        'https://wedev-api.sky.pro/api/v1/hamz-talhigov/comments',
+        'https://wedev-api.sky.pro/api/v1/nastya-mikheykina/comments',
         {
           method: "GET"
         }
@@ -157,7 +157,7 @@ const likesUlHTML = people.map((comment, index) =>{
 buttonElement.disabled = true;
 buttonElement.textContent = 'Элемент добавляется...';
 // Выкидываем все на сервер API Post
-const fetchPromise = fetch('https://wedev-api.sky.pro/api/v1/hamz-talhigov/comments', {
+const fetchPromise = fetch('https://wedev-api.sky.pro/api/v1/nastya-mikheykina/comments', {
         method: 'POST',
         body: JSON.stringify({
           text: commentText.value,
