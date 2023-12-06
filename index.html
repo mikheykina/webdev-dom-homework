@@ -7,185 +7,252 @@
   </head>
 
   <body>
-    <div class="container">
-      <ul id="list" class="comments">
-        <!-- <li class="comment">
-          <div class="comment-header">
-            <div>Глеб Фокин</div>
-            <div>12.02.22 12:18</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Это будет первый комментарий на этой странице
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">3</span>
-              <button class="like-button"></button>
-            </div>
-          </div>
-        </li>
-        <li class="comment">
-          <div class="comment-header">
-            <div>Варвара Н.</div>
-            <div>13.02.22 19:22</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Мне нравится как оформлена эта страница! ❤
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">75</span>
-              <button class="like-button -active-like"></button>
-            </div>
-          </div>
-        </li> -->
+    <div class="container" >
+       <ul class="comments" id="comments" >
+
       </ul>
       <div class="add-form">
         <input
           type="text"
           class="add-form-name"
           placeholder="Введите ваше имя"
-
-          value=""
+          id="add-form-name"
+          ;
         />
         <textarea
           type="textarea"
           class="add-form-text"
+          id="add-form-text"
           placeholder="Введите ваш коментарий"
           rows="4"
-          >
-        </textarea>
+          id="add-form-text"
+        ></textarea>
         <div class="add-form-row">
-          <button class="add-form-button">Написать</button>
+          <button class="add-form-button" id="add-button">Написать</button>
+          <button class="add-form-button" id="delete-button">Удалить</button>
         </div>
       </div>
     </div>
   </body>
-  <style>
-    .error {
-      background-color: red;
-    }
-  </style>
+
+
+
+
+
   <script>
-	"use strict";
-	const btnElement = document.querySelector('.add-form-button');
-	const nameInputElement = document.querySelector('.add-form-name');
-	const nameTextAreaElement = document.querySelector('.add-form-text');
-	const myDate = new Date().toLocaleDateString().slice(0, 6) + new Date().toLocaleDateString().slice(-2);
-	const nowDate = myDate + ' ' + new Date().toLocaleTimeString().slice(0, -3);
+    "use strict";
+    const name = document.getElementById("add-form-name");
+    const commentText = document.getElementById("add-form-text");
+    const comments = document.getElementById("comments");
+    const buttonElement = document.getElementById("add-button");
+    const likeButton = document.getElementById("likeButton");
+    const likesContainer = document.getElementById("likes-container");
+    const addFormTexts = document.getElementById("add-form-text");
 
-	const listElement = document.getElementById('list');
 
-	const comments = [
-		{
-			name: 'Глеб Фокин',
-			date: '12.02.22 12:18',
-			comment: 'Это будет первый комментарий на этой странице',
-			like: 3,
-			isLiked: false,
-		},
-		{
-			name: 'Варвара Н.',
-			date: '13.02.22 19:22',
-			comment: 'Мне нравится как оформлена эта страница! ❤',
-			like: 75,
-			isLiked: true,
-		},
-	];
 
-	const initEventListeners = () => {
-		const buttonElements = document.querySelectorAll('.like-button');
+    let people = [
+    ];
 
-		for (const buttonElement of buttonElements) {
-			buttonElement.addEventListener('click', (event) => {
-				event.stopPropagation();
-				const index = buttonElement.dataset.index;
-				if (comments[index].isLiked) {
-					comments[index].isLiked = false;
-					comments[index].like--;
-				} else {
-					comments[index].isLiked = true;
-					comments[index].like++;
-				}
+      const renderComments = () => {
 
-				renderComments();
-			});
-		}
+const likesUlHTML = people.map((comment, index) =>{
 
-		const answerElements = document.querySelectorAll('.comment');
+  return `
+   <li class="comment">
+  <div>${comment.author.name}</div>
+        <div>${comment.date}</div>
+      </div>
+      <div class="comment-body">
+        <div class="comment-text" id="answer" data-index=${index}>
+          ${comment.text}
+        </div>
+      </div>
+      <div class="comment-footer">
+  <div class="likes" data-like="${index}">
+          <span class="likes-counter" id="likes-counter">${comment.likes}</span>
+          <button class="like-button ${ comment.isLiked ? '-active-like' : '' }" id="likeButton"></button>
+        </div>
+      </li>
+      `;
 
-		for (const answer of answerElements) {
-			answer.addEventListener('click', () => {
-				const index = answer.dataset.index;
-				nameTextAreaElement.value = `QUOTE_BEGIN${comments[index].name}:\n${comments[index].comment}QUOTE_END`;
-			});
-		}
-	};
+    })
+    .join("");
+    comments.innerHTML = likesUlHTML;
+    likeEventListeners();
+    commentEventListeners()
+  };
+  getAPI()
 
-	const renderComments = () => {
-		const commentsHtml = comments.map((comment, index) => {
-			return `<li class="comment" data-index='${index}'>
-					<div class="comment-header">
-						<div>${comment.name}</div>
-						<div>${comment.date}</div>
-					</div>
-					<div class="comment-body">
-						<div class="comment-text" style="white-space:pre-line">
-							${comment.comment}
-						</div>
-					</div>
-					<div class="comment-footer">
-						<div class="likes">
-							<span class="likes-counter">${comment.like}</span>
-							<button class="like-button ${comment.isLiked ? '-active-like' : ''}" data-index='${index}'>
-							</button>
-						</div >
-					</div >
-				</li >`;
-		}).join('');
+    // Получаем с сервера API Get
+    function getAPI(){
+      buttonElement.disabled = true;
+      buttonElement.textContent = 'Комментарии загружаются...';
+      const fetchPromiseGet = fetch(
+        'https://wedev-api.sky.pro/api/v1/nastya-mikheykina/comments',
+        {
+          method: "GET"
+        }
+      );
+      fetchPromiseGet     
+        .then((response) => {
+          if (!response.ok) {
+            if (response.status === 500) {
+              /* текст ошибки */
+              throw new Error('Ошибка 500');
+            }
+          }
+          /*при успешном выполнеии запроса возвращаем данные*/
+          return response.json();
+        })
 
-		listElement.innerHTML = commentsHtml;
-		initEventListeners();
-	}
+      .then((responseData) => {
+          console.log(responseData);
+          people = responseData.comments; //comments это ключ массива в документации
+          renderComments()
+        })
+      .then((data) => {
+        buttonElement.disabled = false;
+        buttonElement.textContent = 'Написать';
 
-	renderComments();
+  })
+  .catch((error) => {
+    buttonElement.disabled = false;
+    buttonElement.textContent = 'Написать';
+    if (error.message === 'Ошибка 500') {
+            alert('Ошибка при получении комментариев, пожалуйста, попробуйте позже');
+          }
+          console.error(error.message);
+  });
+  /*500 ошибка*/
 
-	const likesElements = document.querySelectorAll('.likes');
 
-	initEventListeners();
+    };
 
-	renderComments();
 
-	btnElement.addEventListener('click', () => {
-		nameInputElement.classList.remove('error');
-		nameTextAreaElement.classList.remove('error');
-		if (nameInputElement.value === '') {
-			nameInputElement.classList.add('error');
-			return;
-		}
-		if (nameTextAreaElement.value === '') {
-			nameTextAreaElement.classList.add('error');
-			return;
-		}
+    buttonElement.addEventListener("click", () => {
+      if (name.value === "") {
+        name.style.backgroundColor = "#ff7d7d";
+        return;
+      }
+      if (commentText.value === "") {
+        commentText.style.backgroundColor = "#ff7d7d";
+        return;
+      }
 
-		comments.push({
-			name: nameInputElement.value,
-			date: nowDate,
-			comment: nameTextAreaElement.value.replaceAll("&", "&amp;")
-				.replaceAll("<", "&lt;")
-				.replaceAll(">", "&gt;")
-				.replaceAll('"', "&quot;").replaceAll("QUOTE_BEGIN", "<div class='quote'>").replaceAll("QUOTE_END", "</div>"),
-			like: 0,
-			isLiked: false,
-		});
-		renderComments();
+      let date = new Date();
+    let output =
+      String(date.getDate()) +
+      "." +
+      String(date.getMonth() + 1) +
+      "." +
+      date.getFullYear() +
+      " " +
+      date.getHours() +
+      ":" +
+      date.getMinutes();
 
-		nameInputElement.value = '';
-		nameTextAreaElement.value = '';
-	});
+
+//Отключаем кнопку, пока идет загрузка запроса, чтобы пользователь с медленным интернетом видел
+buttonElement.disabled = true;
+buttonElement.textContent = 'Элемент добавляется...';
+// Выкидываем все на сервер API Post
+const fetchPromise = fetch('https://wedev-api.sky.pro/api/v1/nastya-mikheykina/comments', {
+        method: 'POST',
+        body: JSON.stringify({
+          text: commentText.value,
+          name: name.value,
+          forceError: true, 
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            if (response.status === 500) {
+              throw new Error('Ошибка 500');
+            } else if (response.status === 400) {
+              throw new Error('Ошибка 400');
+            }
+          }
+
+          return response.json();
+        })
+        .then((responseData) => {
+          console.log(responseData);
+          getAPI();
+        })
+        .then(() => {
+          buttonElement.disabled = false;
+          buttonElement.textContent = 'Написать';
+          commentText.value = '';
+        })
+        .catch((error) => {
+          buttonElement.disabled = false;
+          buttonElement.textContent = 'Написать';
+
+          if (error.message === 'Ошибка 500') {
+            alert('Ошибка сервера, попробуйте позже');
+            return;
+          }
+
+          if (error.message === 'Ошибка 400') {
+            /*причина этой ошибки */
+            alert('Имя и комментарий должны быть не короче 3 символов');
+            return;
+          }
+
+          alert('Кажется, у вас сломался интернет, попробуйте позже');
+
+          console.log(error);
+        });
+
+      likeEventListeners();
+      renderComments();
+    });
+
+      likeEventListeners();
+      renderComments();
+
+    function likeEventListeners() {
+      const likeElements = document.querySelectorAll(".likes");
+      for (const likeElement of likeElements) {
+        likeElement.addEventListener("click", () => {
+          const index = likeElement.dataset.like;
+          console.log(index);
+
+
+          if(people[index].isLiked === false){
+            people[index].likes++
+            people[index].isLiked = true;
+            }
+            else {
+            people[index].likes--
+            people[index].isLiked = false;
+            }
+            console.log(people[index].likes);
+            renderComments();
+        });
+      }
+    }
+
+
+    function commentEventListeners(){
+      const addFormTexts = document.querySelectorAll(".comment-text");
+      for (const addFormText of addFormTexts){
+      addFormText.addEventListener("click", (event) =>{
+        event.stopPropagation()
+        console.log(addFormText.dataset.index);
+        console.log(event);
+        document.getElementById('add-form-text').value = ">" + people[addFormText.dataset.index].descr + ",";
+
+      })
+    }
+  }
+
+  commentEventListeners()
+
+
+
+    renderComments();
+    likeEventListeners();
   </script>
 </html>
